@@ -57,12 +57,19 @@ class FastPlsa(object):
         
         Update self.number_of_documents
         """
-        self.documents_test = list(map(lambda i: i.split(), open(self.documents_path_test, "r")))        
+        self.documents_test = []
+        f = open(self.documents_path_test, "r")
+        for line in f:
+            self.documents_test.append(line.split())
         self.number_of_documents = len(self.documents_test)
 
         if self.documents_path_train is not None:
-            self.documents_train = list(map(lambda i: i.split(), open(self.documents_path_train, "r")))
-            self.labels = list(map(lambda i: int(i), open(self.labels_path_train, "r")))
+            f = open(self.documents_path_train, "r")
+            for line in f:
+                self.documents_train.append(line.split())
+            f = open(self.labels_path_train, "r")
+            for line in f:
+                self.labels.append(int(line))
 
     def build_vocabulary(self):
         """
@@ -72,8 +79,9 @@ class FastPlsa(object):
         Update self.vocabulary_size
         """
         temp_set = set.union(*map(set, self.documents_test))
-         
-        self.vocabulary = dict(zip(temp_set, range(len(temp_set))))
+        indices = range(len(temp_set))
+        
+        self.vocabulary = dict(zip(temp_set, indices))
         self.vocabulary_size = len(self.vocabulary)
 
     def build_prior(self, number_of_topics = 2):
@@ -104,14 +112,16 @@ class FastPlsa(object):
         and each column represents a vocabulary term.
 
         self.term_doc_matrix[i][j] is the count of term j in document i
-
         """
+
         self.term_doc_matrix = np.zeros((self.number_of_documents, self.vocabulary_size))
         self.background_word_prob = np.zeros(self.vocabulary_size)
         for i in range(self.number_of_documents):
             for k, v in Counter(self.documents_test[i]).items():
                 self.term_doc_matrix[i][self.vocabulary[k]] += v
                 self.background_word_prob[self.vocabulary[k]] += v
+
+        self.background_word_prob /= np.sum(self.background_word_prob)
 
     def initialize_randomly(self):
         """
@@ -183,7 +193,7 @@ class FastPlsa(object):
         """ The E-step updates P(z | w, d) and P(B | w, d)
         """
         print("E step:")
-        # P(z | w, d)
+        # P(z | w, d) 
         self.topic_prob = np.einsum('dj,jw->djw', self.document_topic_prob, self.topic_word_prob)
         self.topic_prob /= self.topic_prob.sum(axis = 1, keepdims = True)
 
@@ -196,7 +206,7 @@ class FastPlsa(object):
         """ The M-step updates P(z | d) and P(w | z)
         """
         print("M step:")
-        # P(z | d)
+        # P(z | d) 
         numerator = 1 + np.einsum('dw,dw,djw->dj', self.term_doc_matrix, (1 - self.background_prob), self.topic_prob)
         self.document_topic_prob = numerator / numerator.sum(axis = 1, keepdims = True)
 

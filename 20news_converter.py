@@ -12,8 +12,8 @@ label_file = open("20news_label.txt", "w")
 test_file = open("20news_test.txt", "w")
 gt_file = open("20news_gt.txt", "w")
 
-train_size = 50
-test_size = 30
+train_size = 20
+test_size = 10
 
 label_count = 0
 train_dirs = os.scandir(train_path)
