@@ -24,6 +24,9 @@ iterations = 30
 epsilon = 0.001
 fastPlsa.plsa(iterations, epsilon, save_every_iter = 10)
 
+
+## Check model status and save
+fastPlsa.show_status()
 fastPlsa.save_model()
 
 ## Create fastPlsa using an existing saved model
